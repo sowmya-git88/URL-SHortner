@@ -1,0 +1,43 @@
+# /etc/caddy/Caddyfile  —  Project 01 (URL shortener)
+# {$EC2_IP} is read from /etc/caddy/caddy.env via the systemd drop-in (see root README §3.5).
+
+(urlshort) {
+	encode zstd gzip
+
+	# API and redirect paths go to Gunicorn (internal only)
+	handle /api/* {
+		reverse_proxy 127.0.0.1:5001
+	}
+	handle /s/* {
+		reverse_proxy 127.0.0.1:5001
+	}
+
+	# Everything else: static frontend from the FHS location /opt/urlshort/frontend
+	handle {
+		root * /opt/urlshort/frontend
+		file_server
+	}
+
+	header {
+		X-Content-Type-Options nosniff
+		Referrer-Policy strict-origin-when-cross-origin
+		-Server
+	}
+
+	log {
+		output file /var/log/caddy/urlshort.access.log {
+			roll_size 10MiB
+			roll_keep 5
+		}
+	}
+}
+
+# HTTPS with an automatic Let's Encrypt certificate (no domain purchase needed)
+{$EC2_IP}.sslip.io {
+	import urlshort
+}
+
+# Plain HTTP on the raw IP (certificates cannot be issued for bare IPs here)
+http://{$EC2_IP} {
+	import urlshort
+}
