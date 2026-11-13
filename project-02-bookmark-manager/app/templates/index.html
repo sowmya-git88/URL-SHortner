@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Bookmarks · Project 02</title>
+  <link rel="stylesheet" href="/static/style.css">
+  <script src="https://unpkg.com/htmx.org@2.0.3"></script>
+</head>
+<body>
+<main>
+  <header>
+    <h1>📚 Bookmarks</h1>
+    <p class="muted">HTMX + Go single binary + Turso · Project 02</p>
+  </header>
+
+  <form hx-post="/bookmarks" hx-target="#list" hx-swap="afterbegin"
+        hx-on::after-request="if(event.detail.successful){this.reset();document.getElementById('form-error').textContent=''}">
+    <input name="url" type="url" placeholder="https://…" required>
+    <input name="title" type="text" placeholder="Title (optional)">
+    <input name="tags" type="text" placeholder="tags, comma, separated">
+    <button type="submit">Save</button>
+  </form>
+  <p id="form-error" class="error"></p>
+
+  <input class="search" type="search" name="q" placeholder="Search title, tag or URL…"
+         hx-get="/bookmarks" hx-trigger="input changed delay:300ms, search" hx-target="#list">
+
+  <ul id="list">
+    {{template "list.html" .Items}}
+  </ul>
+
+  <footer class="muted" hx-get="/api/health" hx-trigger="load" hx-swap="none"
+          hx-on::after-request="try{const h=JSON.parse(event.detail.xhr.responseText);this.textContent='API '+h.status+' · pid '+h.pid+' · requests '+h.requests}catch(e){this.textContent='API unreachable'}">
+    checking API…
+  </footer>
+</main>
+</body>
+</html>

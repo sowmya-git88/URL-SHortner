@@ -1,0 +1,31 @@
+# /etc/caddy/Caddyfile — Project 05 (Svelte static build + Hono API)
+(flashcards) {
+	encode zstd gzip
+	handle /api/* {
+		reverse_proxy 127.0.0.1:5005 {
+			lb_try_duration 5s
+		}
+	}
+	handle {
+		root * /opt/flashcards/web/dist
+		try_files {path} /index.html
+		file_server
+		@hashed path /assets/*
+		header @hashed Cache-Control "public, max-age=31536000, immutable"
+	}
+	header -Server
+	log {
+		output file /var/log/caddy/flashcards.access.log {
+			roll_size 10MiB
+			roll_keep 5
+		}
+	}
+}
+
+{$EC2_IP}.sslip.io {
+	import flashcards
+}
+
+http://{$EC2_IP} {
+	import flashcards
+}

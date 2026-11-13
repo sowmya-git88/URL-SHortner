@@ -1,0 +1,16 @@
+# /etc/logrotate.d/kanban — rotates PM2's log files
+/var/log/kanban/*.log {
+    daily
+    rotate 14
+    maxsize 20M
+    missingok
+    notifempty
+    compress
+    delaycompress
+    dateext
+    dateformat -%Y%m%d
+    # PM2 keeps the file descriptor open; copy then truncate in place instead of moving the file
+    copytruncate
+    # /var/log/kanban is owned by kanban (not root) → logrotate requires a 'su' line
+    su kanban kanban
+}

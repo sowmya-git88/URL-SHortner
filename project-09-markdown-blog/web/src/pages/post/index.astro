@@ -1,0 +1,20 @@
+---
+import Base from "../../layouts/Base.astro";
+---
+<Base title="Post">
+  <article id="post"><p class="muted">Loading…</p></article>
+  <script>
+    const box = document.getElementById("post")!;
+    const slug = new URLSearchParams(location.search).get("slug") || "";
+    fetch(`/api/posts/${encodeURIComponent(slug)}`)
+      .then((r) => (r.ok ? r.json() : Promise.reject(new Error(r.status === 404 ? "Post not found" : `HTTP ${r.status}`))))
+      .then((p: { title: string; html: string; created_at: string; updated_at: string; cover_key?: string }) => {
+        document.title = `${p.title} · MD Blog`;
+        const cover = p.cover_key ? `<img src="/api/media/${encodeURIComponent(p.cover_key)}" alt="">` : "";
+        // html is rendered server-side from Markdown written by the (authenticated) admin
+        box.innerHTML = `${cover}<h1>${p.title.replace(/</g, "&lt;")}</h1>
+          <p class="muted">published ${p.created_at.slice(0, 10)} · updated ${p.updated_at.slice(0, 10)}</p>${p.html}`;
+      })
+      .catch((e) => (box.innerHTML = `<p class="error">${e.message}</p>`));
+  </script>
+</Base>

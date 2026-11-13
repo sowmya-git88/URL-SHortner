@@ -1,0 +1,24 @@
+# /etc/caddy/Caddyfile — Project 02 (Go bookmarks). The Go binary serves HTML, static and API.
+(bookmarks) {
+	encode zstd gzip
+	reverse_proxy 127.0.0.1:5002 {
+		# Go returns 502 itself if Turso is down; Caddy returns 502 if the binary is down.
+		health_uri /api/health
+		health_interval 15s
+		health_timeout 3s
+	}
+	log {
+		output file /var/log/caddy/bookmarks.access.log {
+			roll_size 10MiB
+			roll_keep 5
+		}
+	}
+}
+
+{$EC2_IP}.sslip.io {
+	import bookmarks
+}
+
+http://{$EC2_IP} {
+	import bookmarks
+}

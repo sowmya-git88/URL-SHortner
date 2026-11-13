@@ -1,0 +1,29 @@
+# /etc/systemd/system/snippetbin.service
+[Unit]
+Description=Project 07 SnippetBin (Sinatra + Puma + Upstash Redis)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+User=snippetbin
+Group=snippetbin
+WorkingDirectory=/opt/snippetbin/app
+EnvironmentFile=/etc/snippetbin/snippetbin.env
+Environment=BUNDLE_GEMFILE=/opt/snippetbin/app/Gemfile
+Environment=HOME=/var/lib/snippetbin
+# systemd creates /var/lib/snippetbin owned by User= (bundler wants a writable HOME)
+StateDirectory=snippetbin
+Environment=BUNDLE_PATH=/opt/snippetbin/app/vendor/bundle
+ExecStart=/usr/bin/bundle exec puma -C puma.rb config.ru
+Restart=on-failure
+RestartSec=2
+MemoryMax=180M
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+ReadWritePaths=/var/log/snippetbin
+SyslogIdentifier=snippetbin
+
+[Install]
+WantedBy=multi-user.target

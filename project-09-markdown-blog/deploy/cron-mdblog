@@ -1,0 +1,10 @@
+# /etc/cron.d/mdblog-maintenance   (no dots allowed in /etc/cron.d filenames!)
+# m  h  dom mon dow  user  command
+SHELL=/bin/bash
+PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+MAILTO=""
+
+# Daily cleanup at 03:30 UTC; nightly report to a log file
+30 3 * * *   root  /usr/local/bin/disk_cleanup.sh --threshold 80 >> /var/log/disk_cleanup.log 2>&1
+# Emergency check every 15 minutes: only acts if the disk is above 90 %
+*/15 * * * * root  /usr/local/bin/disk_cleanup.sh --threshold 90 --quiet >> /var/log/disk_cleanup.log 2>&1

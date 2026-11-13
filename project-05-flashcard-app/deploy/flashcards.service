@@ -1,0 +1,30 @@
+# /etc/systemd/system/flashcards.service
+[Unit]
+Description=Project 05 Flashcards API (Hono on Node)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+User=flashcards
+Group=flashcards
+WorkingDirectory=/opt/flashcards/api
+EnvironmentFile=/etc/flashcards/flashcards.env
+# Cap the V8 heap so Node collects garbage before the cgroup limit is hit
+ExecStart=/usr/bin/node --max-old-space-size=96 dist/index.js
+Restart=on-failure
+RestartSec=2
+# MemoryHigh = soft limit (reclaim + throttle) · MemoryMax = hard limit (OOM kill in this cgroup)
+MemoryHigh=140M
+MemoryMax=180M
+# Allow this service to use swap under pressure but not unlimited
+MemorySwapMax=100M
+# Make the OOM killer prefer this process over sshd/caddy if the WHOLE box runs out (range -1000..1000)
+OOMScoreAdjust=300
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+SyslogIdentifier=flashcards
+
+[Install]
+WantedBy=multi-user.target

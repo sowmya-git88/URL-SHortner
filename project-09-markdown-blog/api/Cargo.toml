@@ -1,0 +1,25 @@
+[package]
+name = "mdblog"
+version = "1.0.0"
+edition = "2021"
+description = "Project 09 - Markdown blog API: Actix-web + Cloudflare D1 (REST) + R2 (S3 SigV4)"
+
+[dependencies]
+actix-web = "4.9"
+reqwest = { version = "0.12", default-features = false, features = ["json", "rustls-tls"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+pulldown-cmark = "0.12"
+hmac = "0.12"
+sha2 = "0.10"
+hex = "0.4"
+chrono = { version = "0.4", default-features = false, features = ["clock", "std"] }
+env_logger = "0.11"
+log = "0.4"
+
+[profile.release]
+opt-level = 3
+lto = "thin"
+strip = true
+codegen-units = 4
+panic = "abort"

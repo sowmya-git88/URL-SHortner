@@ -1,0 +1,26 @@
+# /etc/systemd/system/bookmarks.service
+# Part C of this project runs the binary by hand with nohup to learn job control and signals.
+# Install this unit at the END of the lab (systemd is the deep-dive topic of Project 03).
+[Unit]
+Description=Project 02 bookmark manager (Go + Turso)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+User=bookmarks
+Group=bookmarks
+EnvironmentFile=/etc/bookmarks/bookmarks.env
+ExecStart=/opt/bookmarks/bin/bookmarks
+# SIGTERM first (graceful), SIGKILL after 15 s
+KillSignal=SIGTERM
+TimeoutStopSec=15
+Restart=on-failure
+RestartSec=2
+MemoryMax=80M
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target

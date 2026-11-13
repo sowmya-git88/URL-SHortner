@@ -1,0 +1,30 @@
+# /etc/caddy/Caddyfile — Project 07 (Vue static + Sinatra API)
+(snippetbin) {
+	encode zstd gzip
+	handle /api/* {
+		reverse_proxy 127.0.0.1:5007
+	}
+	handle {
+		root * /opt/snippetbin/public
+		try_files {path} /index.html
+		file_server
+	}
+	header -Server
+	# Caddy's own access log is JSON (one object per line). The app writes a plain-text log
+	# (/var/log/snippetbin/access.log) which is what log_analyzer.sh parses with awk/sed/sort.
+	log {
+		output file /var/log/caddy/snippetbin.access.log {
+			roll_size 10MiB
+			roll_keep 5
+		}
+		format json
+	}
+}
+
+{$EC2_IP}.sslip.io {
+	import snippetbin
+}
+
+http://{$EC2_IP} {
+	import snippetbin
+}

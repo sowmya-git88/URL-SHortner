@@ -1,0 +1,32 @@
+# /etc/caddy/Caddyfile — Project 10 (blue/green behind one site)
+(statusdash) {
+	encode zstd gzip
+	# Both colours are listed. 'first' = always prefer the first HEALTHY upstream.
+	# During a deploy the old colour is stopped AFTER the new one is healthy; active health
+	# checks + lb_try_duration make Caddy fail over without returning errors to users.
+	reverse_proxy 127.0.0.1:5010 127.0.0.1:5011 {
+		lb_policy first
+		lb_try_duration 10s
+		lb_try_interval 250ms
+		fail_duration 10s
+		health_uri /api/health
+		health_interval 2s
+		health_timeout 2s
+		health_status 200
+	}
+	header -Server
+	log {
+		output file /var/log/caddy/statusdash.access.log {
+			roll_size 10MiB
+			roll_keep 5
+		}
+	}
+}
+
+{$EC2_IP}.sslip.io {
+	import statusdash
+}
+
+http://{$EC2_IP} {
+	import statusdash
+}

@@ -1,0 +1,11 @@
+# /etc/logrotate.d/mdblog
+/var/log/mdblog/*.log {
+    weekly
+    rotate 8
+    compress
+    delaycompress
+    missingok
+    notifempty
+    copytruncate
+    su mdblog mdblog
+}

@@ -1,0 +1,23 @@
+# /etc/systemd/system/mdblog.service
+[Unit]
+Description=Project 09 Markdown blog API (Rust Actix + Cloudflare D1/R2)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+User=mdblog
+Group=mdblog
+EnvironmentFile=/etc/mdblog/mdblog.env
+ExecStart=/opt/mdblog/bin/mdblog
+Restart=on-failure
+RestartSec=2
+MemoryMax=80M
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+ReadWritePaths=/var/cache/mdblog /var/log/mdblog
+SyslogIdentifier=mdblog
+
+[Install]
+WantedBy=multi-user.target

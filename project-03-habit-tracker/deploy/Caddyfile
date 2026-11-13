@@ -1,0 +1,19 @@
+# /etc/caddy/Caddyfile — Project 03 (Express serves both the API and the Alpine.js static files)
+(habits) {
+	encode zstd gzip
+	reverse_proxy 127.0.0.1:5003
+	log {
+		output file /var/log/caddy/habits.access.log {
+			roll_size 10MiB
+			roll_keep 5
+		}
+	}
+}
+
+{$EC2_IP}.sslip.io {
+	import habits
+}
+
+http://{$EC2_IP} {
+	import habits
+}

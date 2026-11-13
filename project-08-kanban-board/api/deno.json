@@ -1,0 +1,11 @@
+{
+  "tasks": {
+    "start": "deno run --allow-net --allow-env --allow-read --allow-sys --env-file=/etc/kanban/kanban.env main.ts",
+    "dev": "deno run --watch --allow-net --allow-env --allow-read --allow-sys --env-file=.env main.ts",
+    "migrate": "deno run --allow-net --allow-env --allow-read --allow-sys --env-file=/etc/kanban/kanban.env migrate.ts"
+  },
+  "imports": {
+    "postgres": "npm:postgres@3.4.5"
+  },
+  "fmt": { "lineWidth": 110 }
+}

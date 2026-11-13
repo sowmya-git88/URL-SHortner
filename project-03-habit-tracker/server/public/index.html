@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Habits · Project 03</title>
+  <link rel="stylesheet" href="/style.css">
+  <script defer src="/app.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.3/dist/cdn.min.js"></script>
+</head>
+<body>
+<main x-data="habitApp()" x-init="init()">
+  <h1>✅ Habit Tracker</h1>
+  <p class="muted">Alpine.js + Express + MongoDB Atlas · systemd-managed · Project 03</p>
+
+  <form @submit.prevent="add()">
+    <input x-model="newName" placeholder="New habit (e.g. Practice systemctl)" maxlength="60" required>
+    <input type="color" x-model="newColor">
+    <button>Add</button>
+  </form>
+  <p class="error" x-show="error" x-text="error"></p>
+
+  <section class="days">
+    <span></span>
+    <template x-for="d in lastDays" :key="d"><span class="day" x-text="d.slice(5)"></span></template>
+    <span></span>
+  </section>
+
+  <template x-for="h in habits" :key="h.id">
+    <section class="habit">
+      <div class="name">
+        <span class="dot" :style="`background:${h.color}`"></span>
+        <strong x-text="h.name"></strong>
+        <small x-text="`🔥 ${h.streak} · total ${h.total}`"></small>
+      </div>
+      <template x-for="d in lastDays" :key="h.id + d">
+        <button class="cell" :class="{ on: h.checkins.includes(d) }"
+                :style="h.checkins.includes(d) ? `background:${h.color}` : ''"
+                @click="toggle(h, d)" :title="d"></button>
+      </template>
+      <button class="del" @click="remove(h)">✕</button>
+    </section>
+  </template>
+
+  <footer class="muted" x-text="health"></footer>
+</main>
+</body>
+</html>

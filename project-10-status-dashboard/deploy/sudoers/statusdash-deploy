@@ -1,0 +1,12 @@
+# /etc/sudoers.d/statusdash-deploy   (install with: sudo visudo -cf FILE && sudo install -m 0440 FILE /etc/sudoers.d/)
+#
+# Least privilege for the CI user 'deploy':
+#   * may run ONE root-owned script with a fixed set of sub-commands
+#   * may NOT run a shell, systemctl, rm, or anything else as root
+# The script itself validates every argument (wildcards in sudoers match ANY text).
+Cmnd_Alias STATUSDASH_DEPLOY = /opt/statusdash/bin/zero_downtime_deploy.sh deploy *, \
+                               /opt/statusdash/bin/zero_downtime_deploy.sh rollback, \
+                               /opt/statusdash/bin/zero_downtime_deploy.sh status
+
+Defaults:deploy !requiretty, env_reset, secure_path="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+deploy ALL=(root) NOPASSWD: STATUSDASH_DEPLOY

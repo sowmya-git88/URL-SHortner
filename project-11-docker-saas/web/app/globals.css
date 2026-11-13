@@ -1,0 +1,18 @@
+* { box-sizing: border-box; }
+body { margin: 0; font-family: system-ui, sans-serif; background: #0c4a6e; color: #f0f9ff; }
+main { max-width: 1000px; margin: 2rem auto; padding: 0 1rem; }
+h1 { margin: 0; }
+.muted { color: #7dd3fc; font-size: .85rem; }
+.grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-top: 1rem; }
+@media (max-width: 760px) { .grid { grid-template-columns: 1fr; } }
+.panel { background: #075985; border-radius: 12px; padding: 1rem; }
+.row { display: flex; gap: .5rem; }
+input[type=text], input:not([type]) { flex: 1; }
+input { padding: .55rem; border-radius: 8px; border: 1px solid #0ea5e9; background: #0c4a6e; color: inherit; font: inherit; }
+button { border: 0; border-radius: 8px; padding: .55rem 1rem; background: #38bdf8; color: #082f49; font-weight: 700; cursor: pointer; }
+ul { list-style: none; padding: 0; }
+li { display: flex; justify-content: space-between; align-items: center; padding: .45rem 0; border-bottom: 1px solid #0369a1; }
+li.done label { text-decoration: line-through; opacity: .6; }
+.x { background: none; color: #fca5a5; padding: .2rem .4rem; }
+a { color: #bae6fd; }
+.error { color: #fecaca; }

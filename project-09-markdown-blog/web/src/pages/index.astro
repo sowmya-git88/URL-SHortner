@@ -1,0 +1,20 @@
+---
+import Base from "../layouts/Base.astro";
+---
+<Base title="Posts">
+  <h1>Latest posts</h1>
+  <div id="posts"><p class="muted">Loading…</p></div>
+  <script>
+    const esc = (s: string) => s.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]!);
+    const box = document.getElementById("posts")!;
+    fetch("/api/posts")
+      .then((r) => (r.ok ? r.json() : Promise.reject(new Error(`HTTP ${r.status}`))))
+      .then((posts: Array<{ slug: string; title: string; summary: string; created_at: string }>) => {
+        box.innerHTML = posts.length
+          ? posts.map((p) => `<article class="card"><h2><a href="/post/?slug=${encodeURIComponent(p.slug)}">${esc(p.title)}</a></h2>
+              <p class="muted">${esc(p.created_at.slice(0, 10))}</p><p>${esc(p.summary || "")}</p></article>`).join("")
+          : `<p class="muted">No posts yet — write one in <a href="/admin/">Admin</a>.</p>`;
+      })
+      .catch((e) => (box.innerHTML = `<p class="error">Could not load posts: ${e.message}</p>`));
+  </script>
+</Base>

@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>SplitIt · Project 04</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+<main>
+  <header>
+    <h1>💸 SplitIt</h1>
+    <p class="muted">Vanilla JS → Caddy → FastAPI → Neon Postgres · Project 04</p>
+  </header>
+
+  <section class="grid">
+    <aside>
+      <h2>Groups</h2>
+      <ul id="groups"></ul>
+      <form id="group-form">
+        <input name="name" placeholder="Group name" required maxlength="80">
+        <input name="members" placeholder="Members: Asha, Ravi, Meera">
+        <button>Create group</button>
+      </form>
+    </aside>
+
+    <article id="detail">
+      <p class="muted">Select or create a group.</p>
+    </article>
+  </section>
+  <p id="error" class="error"></p>
+  <footer id="health" class="muted">checking API…</footer>
+</main>
+<script type="module" src="/app.js"></script>
+</body>
+</html>

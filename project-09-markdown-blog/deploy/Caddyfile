@@ -1,0 +1,28 @@
+# /etc/caddy/Caddyfile — Project 09 (Astro static site + Rust API)
+(mdblog) {
+	encode zstd gzip
+	handle /api/* {
+		reverse_proxy 127.0.0.1:5009
+	}
+	handle {
+		# /opt/mdblog/web/current is a SYMLINK to a dated release directory (see GUIDEBOOK C5)
+		root * /opt/mdblog/web/current
+		try_files {path} {path}/index.html /index.html
+		file_server
+	}
+	header -Server
+	log {
+		output file /var/log/caddy/mdblog.access.log {
+			roll_size 10MiB
+			roll_keep 5
+		}
+	}
+}
+
+{$EC2_IP}.sslip.io {
+	import mdblog
+}
+
+http://{$EC2_IP} {
+	import mdblog
+}

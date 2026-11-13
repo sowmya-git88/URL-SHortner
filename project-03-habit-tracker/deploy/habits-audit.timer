@@ -1,0 +1,11 @@
+# /etc/systemd/system/habits-audit.timer — systemd's replacement for a cron entry
+[Unit]
+Description=Run service_audit.sh every day at 06:00 UTC
+
+[Timer]
+OnCalendar=*-*-* 06:00:00 UTC
+Persistent=true
+RandomizedDelaySec=5min
+
+[Install]
+WantedBy=timers.target

@@ -1,0 +1,29 @@
+# /etc/caddy/Caddyfile — Project 08 (SolidJS static + Deno API under PM2)
+(kanban) {
+	encode zstd gzip
+	handle /api/* {
+		reverse_proxy 127.0.0.1:5008 {
+			lb_try_duration 5s
+		}
+	}
+	handle {
+		root * /opt/kanban/web/dist
+		try_files {path} /index.html
+		file_server
+	}
+	header -Server
+	log {
+		output file /var/log/caddy/kanban.access.log {
+			roll_size 10MiB
+			roll_keep 5
+		}
+	}
+}
+
+{$EC2_IP}.sslip.io {
+	import kanban
+}
+
+http://{$EC2_IP} {
+	import kanban
+}

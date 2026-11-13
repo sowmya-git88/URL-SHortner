@@ -1,0 +1,82 @@
+groups:
+  - name: store-availability
+    rules:
+      - alert: StoreAppDown
+        expr: up{job="store-app"} == 0
+        for: 30s
+        labels:
+          severity: critical
+        annotations:
+          summary: "store-app is not being scraped"
+          description: "Prometheus cannot scrape {{ $labels.instance }} for 30s — container stopped, crashed or unhealthy."
+
+      - alert: HighHttpErrorRate
+        expr: |
+          sum(rate(http_server_requests_seconds_count{job="store-app", status=~"5.."}[1m]))
+            /
+          clamp_min(sum(rate(http_server_requests_seconds_count{job="store-app"}[1m])), 0.001)
+          > 0.2
+        for: 30s
+        labels:
+          severity: warning
+        annotations:
+          summary: "More than 20% of requests fail with 5xx"
+          description: "Current 5xx ratio: {{ $value | humanizePercentage }}"
+
+      - alert: SlowRequestsP95
+        expr: |
+          histogram_quantile(0.95, sum by (le) (rate(http_server_requests_seconds_bucket{job="store-app", uri!~"/actuator.*"}[2m]))) > 1
+        for: 1m
+        labels:
+          severity: warning
+        annotations:
+          summary: "p95 latency above 1s"
+          description: "p95 = {{ $value | humanizeDuration }}"
+
+  - name: store-business
+    rules:
+      - alert: OrdersNotFulfilled
+        expr: orders_pending > 20
+        for: 1m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Orders pile up — Kafka consumer stalled?"
+          description: "{{ $value }} orders waiting for fulfillment"
+
+      - alert: JvmHeapHigh
+        expr: sum(jvm_memory_used_bytes{job="store-app", area="heap"}) / sum(jvm_memory_max_bytes{job="store-app", area="heap"}) > 0.9
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "JVM heap above 90%"
+
+  - name: host
+    rules:
+      - alert: HostHighCpu
+        expr: 100 - (avg(rate(node_cpu_seconds_total{job="node", mode="idle"}[1m])) * 100) > 85
+        for: 1m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Host CPU above 85%"
+          description: "CPU busy: {{ $value | printf \"%.0f\" }}%"
+
+      - alert: HostLowMemory
+        expr: node_memory_MemAvailable_bytes{job="node"} / node_memory_MemTotal_bytes{job="node"} < 0.10
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Less than 10% RAM available"
+
+      - alert: HostDiskAlmostFull
+        expr: |
+          (node_filesystem_avail_bytes{job="node", fstype!~"tmpfs|overlay|squashfs"}
+            / node_filesystem_size_bytes{job="node", fstype!~"tmpfs|overlay|squashfs"}) < 0.10
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Filesystem {{ $labels.mountpoint }} has less than 10% free"

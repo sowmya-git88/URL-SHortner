@@ -1,0 +1,25 @@
+# Rendered by scripts/nginx_vhost.sh → /etc/nginx/sites-available/tickets.conf
+# Variables: ${SERVER_NAMES} ${WEB_ROOT} ${API_ROOT} ${FPM_SOCKET}
+
+# Rate-limit zone for the login endpoint (10 req/min per client IP)
+limit_req_zone $binary_remote_addr zone=tickets_login:1m rate=10r/m;
+
+upstream tickets_fpm {
+    server unix:${FPM_SOCKET};
+}
+
+# --- 1) Raw IP over plain HTTP (default_server catches any Host that matches nothing else) ---
+server {
+    listen 80 default_server;
+    listen [::]:80 default_server;
+    server_name _;
+    include /etc/nginx/snippets/tickets-app.conf;
+}
+
+# --- 2) Named hosts (DuckDNS + sslip.io). Certbot will add the 443/TLS bits to THIS block. ---
+server {
+    listen 80;
+    listen [::]:80;
+    server_name ${SERVER_NAMES};
+    include /etc/nginx/snippets/tickets-app.conf;
+}

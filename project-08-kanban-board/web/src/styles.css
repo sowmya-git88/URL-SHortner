@@ -1,0 +1,16 @@
+*{box-sizing:border-box}
+body{margin:0;font-family:system-ui,sans-serif;background:#1e1b4b;color:#e0e7ff}
+main{padding:1.5rem}
+h1{margin:0}.muted{color:#a5b4fc;font-size:.85rem}
+nav{display:flex;gap:.4rem;flex-wrap:wrap;margin:1rem 0}
+nav form{display:flex;gap:.3rem}
+button{border:0;border-radius:8px;padding:.45rem .8rem;background:#4338ca;color:#fff;cursor:pointer;font:inherit}
+button.on{background:#a5b4fc;color:#1e1b4b}
+input{padding:.45rem;border-radius:8px;border:1px solid #4338ca;background:#312e81;color:inherit;font:inherit;width:100%}
+.board{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(260px,1fr);gap:1rem;overflow-x:auto}
+.column{background:#312e81;border-radius:12px;padding:.8rem;min-height:300px}
+.column h2{font-size:1rem;display:flex;justify-content:space-between}
+.card{background:#eef2ff;color:#1e1b4b;border-radius:10px;padding:.6rem .8rem;margin-bottom:.5rem;position:relative;cursor:grab}
+.card p{margin:.3rem 0 0;font-size:.85rem;color:#4338ca}
+.card .x{position:absolute;top:.3rem;right:.3rem;background:none;color:#dc2626;padding:.1rem .3rem}
+.error{color:#fca5a5}

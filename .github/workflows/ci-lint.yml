@@ -1,0 +1,22 @@
+name: ci-lint
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+
+jobs:
+  bash-scripts:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install shellcheck
+        run: sudo apt-get update && sudo apt-get install -y shellcheck
+      - name: Syntax check (bash -n)
+        run: |
+          set -euo pipefail
+          find . -path ./node_modules -prune -o -name '*.sh' -print0 | xargs -0 -n1 bash -n
+      - name: ShellCheck
+        run: |
+          set -euo pipefail
+          find . -path ./node_modules -prune -o -name '*.sh' -print0 | xargs -0 shellcheck -S warning

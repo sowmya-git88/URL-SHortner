@@ -1,0 +1,100 @@
+name: project-10-deploy
+
+# Build on GitHub's runner, ship one tarball over SSH, run the blue/green script via
+# a least-privilege sudo rule. Required repository secrets:
+#   EC2_HOST          public IP of the instance (e.g. 3.110.10.20)
+#   EC2_SSH_KEY       private key of the 'deploy' user (ed25519, no passphrase)
+#   EC2_KNOWN_HOSTS   output of: ssh-keyscan -t ed25519 <EC2_HOST>
+on:
+  push:
+    branches: [main]
+    paths:
+      - "project-10-status-dashboard/**"
+      - ".github/workflows/project-10-deploy.yml"
+  workflow_dispatch:
+
+concurrency:
+  group: project-10-production
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    defaults:
+      run:
+        working-directory: project-10-status-dashboard
+    outputs:
+      version: ${{ steps.meta.outputs.version }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+      - id: meta
+        run: echo "version=$(git rev-parse --short HEAD)" >> "$GITHUB_OUTPUT"
+      - name: Build frontend
+        working-directory: project-10-status-dashboard/web
+        run: bun install && bun run build
+      - name: Install server production deps
+        working-directory: project-10-status-dashboard/server
+        run: bun install --production
+      - name: Syntax/bundle check of the server
+        working-directory: project-10-status-dashboard/server
+        run: bun build server.ts --target bun --outdir /tmp/check >/dev/null
+      - name: Package
+        run: |
+          set -euo pipefail
+          mkdir -p pkg/web
+          cp -r server pkg/server
+          cp -r web/dist pkg/web/dist
+          echo "${{ steps.meta.outputs.version }}" > pkg/VERSION
+          tar -C pkg -czf "statusdash-${{ steps.meta.outputs.version }}.tgz" .
+          ls -lh statusdash-*.tgz
+      - uses: actions/upload-artifact@v4
+        with:
+          name: statusdash
+          path: project-10-status-dashboard/statusdash-*.tgz
+          retention-days: 7
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-24.04
+    environment: production
+    env:
+      VERSION: ${{ needs.build.outputs.version }}
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: statusdash
+      - name: Configure SSH
+        run: |
+          set -euo pipefail
+          install -d -m 700 ~/.ssh
+          printf '%s\n' "${{ secrets.EC2_SSH_KEY }}" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          printf '%s\n' "${{ secrets.EC2_KNOWN_HOSTS }}" > ~/.ssh/known_hosts
+          cat > ~/.ssh/config <<EOF
+          Host ec2
+            HostName ${{ secrets.EC2_HOST }}
+            User deploy
+            IdentityFile ~/.ssh/deploy_key
+            IdentitiesOnly yes
+            StrictHostKeyChecking yes
+            ConnectTimeout 15
+          EOF
+      - name: Upload release
+        run: scp "statusdash-${VERSION}.tgz" ec2:/home/deploy/incoming/
+      - name: Blue/green deploy
+        run: ssh ec2 "sudo /opt/statusdash/bin/zero_downtime_deploy.sh deploy /home/deploy/incoming/statusdash-${VERSION}.tgz ${VERSION}"
+      - name: Smoke test through the public URL
+        run: |
+          set -euo pipefail
+          for i in $(seq 1 10); do
+            body=$(curl -fsS "https://${{ secrets.EC2_HOST }}.sslip.io/api/health" || true)
+            echo "$body"
+            echo "$body" | grep -q "\"version\":\"${VERSION}\"" && exit 0
+            sleep 3
+          done
+          echo "public endpoint does not report ${VERSION}" >&2
+          exit 1
+      - name: Roll back on failure
+        if: failure()
+        run: ssh ec2 "sudo /opt/statusdash/bin/zero_downtime_deploy.sh rollback" || true

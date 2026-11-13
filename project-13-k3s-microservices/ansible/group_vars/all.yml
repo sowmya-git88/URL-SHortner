@@ -1,0 +1,10 @@
+# Variables for playbook.yml. Override on the CLI: -e image_tag=1.1.0
+project_dir: "{{ playbook_dir }}/.."
+namespace: microsvc
+image_tag: "1.0.0"
+services: [api, worker, web]
+k3s_install_exec: "--write-kubeconfig-mode 644"
+# Prefer an environment variable or ansible-vault for real secrets:
+#   DB_PASSWORD=... ansible-playbook playbook.yml   |   ansible-vault encrypt_string
+db_password: "{{ lookup('ansible.builtin.env', 'DB_PASSWORD') | default('change-me-k3s-db', true) }}"
+kube_user: "{{ lookup('ansible.builtin.env', 'SUDO_USER') | default(lookup('ansible.builtin.env', 'USER'), true) }}"

@@ -1,0 +1,9 @@
+<li class="row">
+  <div>
+    <a href="{{.URL}}" target="_blank" rel="noopener">{{.Title}}</a>
+    <div class="url">{{.URL}}</div>
+    <div class="tags">{{range .TagList}}<span class="tag">{{.}}</span>{{end}}</div>
+  </div>
+  <button class="del" hx-delete="/bookmarks/{{.ID}}" hx-target="closest li" hx-swap="outerHTML"
+          hx-confirm="Delete this bookmark?">✕</button>
+</li>

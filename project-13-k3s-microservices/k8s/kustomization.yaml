@@ -1,0 +1,30 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: microsvc
+
+resources:
+  - namespace.yaml
+  - configmap.yaml
+  - postgres.yaml
+  - api.yaml
+  - worker.yaml
+  - web.yaml
+  - ingress.yaml
+  - networkpolicy.yaml
+
+configMapGenerator:
+  - name: postgres-initdb
+    files:
+      - initdb/001_schema.sql
+
+generatorOptions:
+  disableNameSuffixHash: true
+
+# Bump image tags in one place: kubectl apply -k . after editing newTag
+images:
+  - name: microsvc/api
+    newTag: 1.0.0
+  - name: microsvc/worker
+    newTag: 1.0.0
+  - name: microsvc/web
+    newTag: 1.0.0

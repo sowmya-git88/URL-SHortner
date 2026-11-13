@@ -1,0 +1,15 @@
+{
+  "name": "statusdash",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "bun run server.ts",
+    "migrate": "bun run migrate.ts",
+    "typecheck": "bunx tsc --noEmit"
+  },
+  "dependencies": {
+    "ioredis": "^5.4.1",
+    "postgres": "^3.4.5"
+  }
+}

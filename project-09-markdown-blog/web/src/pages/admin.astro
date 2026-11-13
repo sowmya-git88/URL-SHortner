@@ -1,0 +1,52 @@
+---
+import Base from "../layouts/Base.astro";
+---
+<Base title="Admin">
+  <h1>Write a post</h1>
+  <p class="muted">The admin token is kept only in this browser's sessionStorage. Wrong tokens are logged and banned by Fail2Ban after 5 tries.</p>
+  <form id="token-form"><input id="token" type="password" placeholder="Admin token" autocomplete="off" /></form>
+
+  <h2>Cover image (optional)</h2>
+  <input id="file" type="file" accept="image/*" />
+  <p id="upload-result" class="muted"></p>
+
+  <form id="post-form">
+    <input name="slug" placeholder="slug-like-this" pattern="[a-z0-9-]{1,80}" required />
+    <input name="title" placeholder="Title" required />
+    <input name="summary" placeholder="One-line summary" />
+    <input name="cover_key" placeholder="cover key (filled after upload)" />
+    <textarea name="body_md" rows="16" placeholder="# Markdown here" required></textarea>
+    <button>Publish</button>
+  </form>
+  <p id="result"></p>
+
+  <script>
+    const tokenEl = document.getElementById("token") as HTMLInputElement;
+    tokenEl.value = sessionStorage.getItem("mdblog_token") || "";
+    tokenEl.addEventListener("change", () => sessionStorage.setItem("mdblog_token", tokenEl.value));
+    const auth = () => ({ Authorization: `Bearer ${tokenEl.value}` });
+    const form = document.getElementById("post-form") as HTMLFormElement;
+    const result = document.getElementById("result")!;
+
+    document.getElementById("file")!.addEventListener("change", async (ev) => {
+      const f = (ev.target as HTMLInputElement).files?.[0];
+      const out = document.getElementById("upload-result")!;
+      if (!f) return;
+      out.textContent = "uploading…";
+      const r = await fetch(`/api/media?filename=${encodeURIComponent(f.name)}`, { method: "POST", headers: auth(), body: f });
+      const body = await r.json().catch(() => ({}));
+      if (!r.ok) { out.textContent = `upload failed: ${body.error || r.status}`; return; }
+      (form.elements.namedItem("cover_key") as HTMLInputElement).value = body.key;
+      out.innerHTML = `uploaded → <a href="${body.url}" target="_blank">${body.key}</a>`;
+    });
+
+    form.addEventListener("submit", async (ev) => {
+      ev.preventDefault();
+      const data = Object.fromEntries(new FormData(form)) as Record<string, string>;
+      const payload = { ...data, cover_key: data.cover_key || null, published: true };
+      const r = await fetch("/api/posts", { method: "POST", headers: { ...auth(), "Content-Type": "application/json" }, body: JSON.stringify(payload) });
+      const body = await r.json().catch(() => ({}));
+      result.innerHTML = r.ok ? `✅ Published: <a href="${body.url}">${body.slug}</a>` : `<span class="error">❌ ${body.error || r.status}</span>`;
+    });
+  </script>
+</Base>

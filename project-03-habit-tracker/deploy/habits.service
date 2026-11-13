@@ -1,0 +1,52 @@
+# /etc/systemd/system/habits.service — hand-written unit, explained line by line in GUIDEBOOK Part A.
+[Unit]
+Description=Project 03 Habit Tracker (Express + MongoDB Atlas)
+Documentation=file:///opt/habits/GUIDEBOOK.md
+# network-online.target = "an IP is configured", needed because we dial Atlas at startup
+After=network-online.target
+Wants=network-online.target
+# Give up restarting if it fails 5 times within 60 s (prevents a tight crash loop)
+StartLimitIntervalSec=60
+StartLimitBurst=5
+
+[Service]
+Type=simple
+User=habits
+Group=habits
+WorkingDirectory=/opt/habits/server
+EnvironmentFile=/etc/habits/habits.env
+Environment=NODE_OPTIONS=--max-old-space-size=128
+ExecStart=/usr/bin/node /opt/habits/server/server.js
+# Log identity in journald: journalctl -t habits
+SyslogIdentifier=habits
+StandardOutput=journal
+StandardError=journal
+
+Restart=on-failure
+RestartSec=3
+# Do NOT restart on a configuration error (process.exit(78) in db.js)
+RestartPreventExitStatus=78
+KillSignal=SIGTERM
+TimeoutStopSec=10
+
+# Resource limits (cgroup v2)
+MemoryHigh=150M
+MemoryMax=200M
+TasksMax=64
+
+# Sandboxing
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+PrivateDevices=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictSUIDSGID=true
+LockPersonality=true
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
+CapabilityBoundingSet=
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,55 @@
+# Rendered by scripts/nginx_vhost.sh → /etc/nginx/snippets/tickets-app.conf
+root ${WEB_ROOT};
+index index.html;
+
+access_log /var/log/nginx/tickets.access.log;
+error_log  /var/log/nginx/tickets.error.log warn;
+
+client_max_body_size 2m;
+server_tokens off;
+
+add_header X-Content-Type-Options nosniff always;
+add_header X-Frame-Options DENY always;
+add_header Referrer-Policy strict-origin-when-cross-origin always;
+
+gzip on;
+gzip_types text/css application/javascript application/json;
+
+# Static SPA files
+location / {
+    try_files $uri $uri/ /index.html;
+}
+
+# Login gets rate limiting on top of the generic API rule
+location = /api/login {
+    limit_req zone=tickets_login burst=5 nodelay;
+    limit_req_status 429;
+    include fastcgi_params;
+    fastcgi_param SCRIPT_FILENAME ${API_ROOT}/index.php;
+    fastcgi_param SCRIPT_NAME /api/index.php;
+    fastcgi_pass tickets_fpm;
+}
+
+# Every /api/* request → the PHP front controller through the Unix socket
+location /api/ {
+    include fastcgi_params;
+    # The script to execute is ALWAYS index.php — never a user-supplied path
+    fastcgi_param SCRIPT_FILENAME ${API_ROOT}/index.php;
+    fastcgi_param SCRIPT_NAME /api/index.php;
+    fastcgi_read_timeout 30s;
+    fastcgi_pass tickets_fpm;
+}
+
+# PHP-FPM status, localhost only:  curl http://127.0.0.1/fpm-status
+location ~ ^/(fpm-status|fpm-ping)$ {
+    allow 127.0.0.1;
+    deny all;
+    include fastcgi_params;
+    fastcgi_param SCRIPT_NAME $uri;
+    fastcgi_param SCRIPT_FILENAME $uri;
+    fastcgi_pass tickets_fpm;
+}
+
+# Never serve dotfiles or PHP source as static files
+location ~ /\. { deny all; }
+location ~ \.php$ { return 404; }

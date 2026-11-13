@@ -1,0 +1,8 @@
+# /etc/systemd/system/habits-audit.service — oneshot unit run by habits-audit.timer
+[Unit]
+Description=Daily audit of lab services (service_audit.sh)
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/service_audit.sh --since "24 hours ago" habits.service caddy.service ssh.service
+SyslogIdentifier=service-audit

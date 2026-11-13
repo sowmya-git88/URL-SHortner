@@ -1,0 +1,30 @@
+# Caddy container config. SITE_HOST comes from docker-compose environment.
+{
+	# Laptop: no public DNS/ports, so use Caddy's own local CA for HTTPS.
+	local_certs
+}
+
+(app) {
+	encode zstd gzip
+	# Service names resolve through Docker's embedded DNS (127.0.0.11) on the 'edge' network
+	handle /api/* {
+		reverse_proxy api:3000
+	}
+	handle {
+		reverse_proxy web:3000
+	}
+	header -Server
+	log {
+		output stdout
+		format json
+	}
+}
+
+{$SITE_HOST} {
+	import app
+}
+
+# Plain HTTP on any address (http://127.0.0.1, http://<LAN-IP>)
+http:// {
+	import app
+}

@@ -1,0 +1,57 @@
+name: project-09-build
+
+# Rust release builds need well over 1 GB of RAM, so we compile on GitHub's runner
+# (same Ubuntu 24.04 / glibc as the EC2 box) and download the artifact to the server.
+on:
+  push:
+    paths:
+      - "project-09-markdown-blog/**"
+      - ".github/workflows/project-09-build.yml"
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    defaults:
+      run:
+        working-directory: project-09-markdown-blog
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust (stable)
+        run: |
+          curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --profile minimal
+          echo "$HOME/.cargo/bin" >> "$GITHUB_PATH"
+
+      - name: Cache cargo
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            project-09-markdown-blog/api/target
+          key: cargo-${{ runner.os }}-${{ hashFiles('project-09-markdown-blog/api/Cargo.toml') }}
+
+      - name: Build API (release)
+        run: cargo build --release --manifest-path api/Cargo.toml
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Build Astro site
+        working-directory: project-09-markdown-blog/web
+        run: npm install --no-audit --no-fund && npm run build
+
+      - name: Package
+        run: |
+          mkdir -p out
+          cp api/target/release/mdblog out/
+          tar -C web/dist -czf out/web-dist.tar.gz .
+          (cd out && sha256sum mdblog web-dist.tar.gz > SHA256SUMS)
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: mdblog-${{ github.sha }}
+          path: project-09-markdown-blog/out/
+          retention-days: 14

@@ -1,0 +1,40 @@
+# ---- secrets: NEVER commit real env files ----
+.env
+*.env
+!.env.example
+# non-secret per-colour port files used by Project 10
+!project-10-status-dashboard/deploy/blue.env
+!project-10-status-dashboard/deploy/green.env
+*.pem
+*.key
+secrets/
+k8s-secret.yaml
+
+# ---- language/build artefacts ----
+node_modules/
+dist/
+build/
+.next/
+.astro/
+target/
+__pycache__/
+*.pyc
+.venv/
+venv/
+vendor/bundle/
+.bundle/
+*.db
+*.db-wal
+*.db-shm
+bin/bookmarks
+coverage/
+
+# ---- OS / editor ----
+.DS_Store
+.idea/
+.vscode/
+*.swp
+nohup.out
+*.log
+# practice data for Project 07's log_analyzer.sh
+!project-07-snippet-bin/sample-logs/*.log

@@ -1,0 +1,23 @@
+# /etc/fail2ban/jail.d/devops-lab.local
+[DEFAULT]
+# Never ban yourself: add your home/office IP here (space separated)
+ignoreip = 127.0.0.1/8 ::1
+bantime  = 1h
+findtime = 10m
+maxretry = 5
+# Ubuntu 24.04: nftables is the firewall backend
+banaction = nftables-multiport
+
+[sshd]
+enabled  = true
+backend  = systemd
+maxretry = 4
+
+[mdblog-auth]
+enabled  = true
+filter   = mdblog-auth
+logpath  = /var/log/mdblog/auth.log
+backend  = auto
+port     = http,https
+maxretry = 5
+bantime  = 2h

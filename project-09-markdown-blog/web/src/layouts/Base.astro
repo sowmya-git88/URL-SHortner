@@ -1,0 +1,49 @@
+---
+interface Props { title: string }
+const { title } = Astro.props;
+---
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <title>{title} · MD Blog</title>
+  </head>
+  <body>
+    <header class="top">
+      <a href="/" class="brand">M↓ Blog</a>
+      <nav><a href="/">Posts</a><a href="/admin/">Admin</a></nav>
+    </header>
+    <main><slot /></main>
+    <footer id="health">Astro → Caddy → Rust (Actix) → Cloudflare D1 + R2 · Project 09</footer>
+    <script>
+      fetch("/api/health").then((r) => r.json()).then((h) => {
+        const el = document.getElementById("health");
+        if (el) el.textContent += ` · API ${h.status} · D1 ${h.db_ms} ms · media cache ${h.media_cache_mb} MB`;
+      }).catch(() => {});
+    </script>
+  </body>
+</html>
+
+<style is:global>
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: Georgia, "Times New Roman", serif; background: #fffbeb; color: #292524; }
+  .top { display: flex; justify-content: space-between; align-items: center; padding: 1rem 2rem; border-bottom: 2px solid #fed7aa; font-family: system-ui, sans-serif; }
+  .brand { font-weight: 800; color: #ea580c; text-decoration: none; font-size: 1.3rem; }
+  nav a { margin-left: 1rem; color: #9a3412; }
+  main { max-width: 760px; margin: 2rem auto; padding: 0 1rem; line-height: 1.7; }
+  footer { text-align: center; color: #a8a29e; font: .8rem system-ui, sans-serif; padding: 2rem; }
+  a { color: #c2410c; }
+  pre, code { font-family: ui-monospace, Menlo, monospace; background: #f5f5f4; border-radius: 4px; }
+  pre { padding: 1rem; overflow: auto; }
+  table { border-collapse: collapse; } td, th { border: 1px solid #e7e5e4; padding: .3rem .6rem; }
+  img { max-width: 100%; border-radius: 8px; }
+  input, textarea { width: 100%; padding: .6rem; border: 1px solid #fdba74; border-radius: 8px; font: 1rem system-ui, sans-serif; margin: .25rem 0; }
+  textarea { font-family: ui-monospace, monospace; }
+  button { border: 0; border-radius: 8px; padding: .6rem 1.1rem; background: #ea580c; color: #fff; cursor: pointer; font: 600 1rem system-ui, sans-serif; }
+  .muted { color: #78716c; font: .9rem system-ui, sans-serif; }
+  .card { padding: 1rem 0; border-bottom: 1px dashed #fed7aa; }
+  .card h2 { margin: 0; }
+  .error { color: #dc2626; font-family: system-ui, sans-serif; }
+</style>

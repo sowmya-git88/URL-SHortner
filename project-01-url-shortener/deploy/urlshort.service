@@ -1,0 +1,23 @@
+# /etc/systemd/system/urlshort.service
+# (systemd is studied in depth in Project 03 — here it is used as a "black box".)
+[Unit]
+Description=Project 01 URL shortener (Flask + Gunicorn)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=urlshort
+Group=urlshort
+WorkingDirectory=/opt/urlshort/app
+EnvironmentFile=/etc/urlshort/urlshort.env
+ExecStart=/opt/urlshort/venv/bin/gunicorn --workers 2 --bind ${BIND} --access-logfile - --error-logfile - wsgi:app
+Restart=on-failure
+RestartSec=3
+MemoryMax=150M
+NoNewPrivileges=true
+ProtectSystem=full
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target
